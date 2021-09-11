@@ -866,6 +866,4 @@ const scraper = {
   },
 };
 
-scraper.initialize('dolnoslaskie');
-
 module.exports = scraper;
