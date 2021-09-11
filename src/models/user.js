@@ -67,6 +67,10 @@ const userSchema = new mongoose.Schema({
     type: Array,
     default: [],
   },
+  assignedAds: {
+    type: Array,
+    default: [],
+  },
   createdAt: {
     type: Number,
     required: true,

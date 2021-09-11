@@ -48,6 +48,12 @@ router.get('/api/re_ads', auth, async (req, res) => {
       search = { ...search, phone: otherphone, _id: { $ne: otherid } };
     }
 
+    // GET ASSIGNED ADS
+    if (req.query.assignedAds) {
+      const assignedAdsArr = req.user.assignedAds;
+      search = { ...search, _id: { $in: assignedAdsArr } };
+    }
+
     // SEARCH FORM QUERY
 
     // @state

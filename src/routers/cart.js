@@ -98,10 +98,14 @@ router.patch('/api/carts', auth, async (req, res) => {
     // Checking for errors
     const validation = {};
     if (Object.keys(req.body).includes('title')) {
-      validation.title = validateCartData('title', req.body.title);
+      validation.title = await validateCartData(
+        'title',
+        req.body.title,
+        req.user._id
+      );
     }
     if (Object.keys(req.body).includes('description')) {
-      validation.description = validateCartData(
+      validation.description = await validateCartData(
         'description',
         req.body.description
       );

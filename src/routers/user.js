@@ -439,76 +439,28 @@ router.get('/api/agents', auth, async (req, res) => {
   }
 });
 
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//////////////////////////
-///// READ USERS ALL /////
-//////////////////////////
-router.get('/api/users', async (req, res) => {
+//////////////////////////////
+///// ASSIGN AD TO AGENT /////
+//////////////////////////////
+router.post('/api/agents/assign', auth, async (req, res) => {
   try {
-    const users = await User.find({});
-    res.send(users);
-  } catch (err) {
-    console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
-  }
-});
+    const { agentId, adId } = req.body;
 
-////////////////////////
-///// READ USER ME /////
-////////////////////////
-router.get('/api/users/me', auth, async (req, res) => {
-  res.send(req.user);
-});
-
-///////////////////////////
-///// READ USER BY ID /////
-///////////////////////////
-router.get('/api/users/:id', async (req, res) => {
-  const id = req.params.id;
-
-  // Validating if request data is valid ObjectId
-  if (id.length != 12 && id.length != 24) {
-    return res.status(404).send({ msg: 'Nothing was found' });
-  }
-
-  try {
-    const user = await User.findById(id);
+    const user = await User.findById({ _id: agentId });
 
     if (!user) {
-      return res.status(404).send({ msg: 'Nothing was found' });
+      throw new Error('User was not found.');
     }
 
-    res.send(user);
-  } catch (err) {
-    console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
-  }
-});
+    if (!user.assignedAds) {
+      user.assignedAds = [adId];
+    }
 
-//////////////////////////
-///// DELETE USER ME /////
-//////////////////////////
-router.delete('/api/users/me', auth, async (req, res) => {
-  try {
-    await req.user.remove();
-    res.send(req.user);
+    if (!user.assignedAds.includes(adId)) {
+      user.assignedAds.push(adId);
+    }
+
+    res.send({ user });
   } catch (err) {
     console.log(err);
     res.status(500).send({ error: 'Coś poszło nie tak...' });

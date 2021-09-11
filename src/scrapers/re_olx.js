@@ -866,6 +866,6 @@ const scraper = {
   },
 };
 
-// scraper.initialize('opolskie');
+scraper.initialize('dolnoslaskie');
 
 module.exports = scraper;
