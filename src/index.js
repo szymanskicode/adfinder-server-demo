@@ -29,4 +29,4 @@ app.listen(port, () => {
 });
 
 // Initialize scrapers
-re_olx.initialize('dolnoslaskie');
+// re_olx.initialize('dolnoslaskie');
