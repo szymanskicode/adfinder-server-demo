@@ -842,7 +842,7 @@ const scraper = {
       await saveLog({
         type: 'success',
         scraper: 're_olx',
-        msg: 'Scraping has ended successfully!',
+        msg: 'Scraping has ended!',
         info:
           'Time: ' +
           Math.floor((scraper.endTime - scraper.startTime) / 1000) +

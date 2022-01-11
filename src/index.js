@@ -4,12 +4,16 @@ const userRouter = require('./routers/user');
 const re_offerRouter = require('./routers/re_ad');
 const logRouter = require('./routers/admin');
 const cartRouter = require('./routers/cart');
+const cors = require('cors');
 
 // Scrapers
 const re_olx = require('./scrapers/re_olx');
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+// Cors Middleware
+app.use(cors());
 
 // Express Middleware
 app.use((req, res, next) => {
