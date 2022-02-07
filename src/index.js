@@ -1,13 +1,13 @@
-const express = require('express');
-require('./db/mongoose');
-const userRouter = require('./routers/user');
-const re_offerRouter = require('./routers/re_ad');
-const logRouter = require('./routers/admin');
-const cartRouter = require('./routers/cart');
-const cors = require('cors');
+const express = require("express");
+require("./db/mongoose");
+const userRouter = require("./routers/user");
+const re_offerRouter = require("./routers/re_ad");
+const logRouter = require("./routers/admin");
+const cartRouter = require("./routers/cart");
+const cors = require("cors");
 
 // Scrapers
-const re_olx = require('./scrapers/re_olx');
+const re_olx = require("./scrapers/re_olx");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -29,8 +29,8 @@ app.use(logRouter);
 app.use(cartRouter);
 
 app.listen(port, () => {
-  console.log('Server is up on port ' + port);
+  console.log("Server is up on port " + port);
 });
 
 // Initialize scrapers
-// re_olx.initialize('dolnoslaskie');
+// re_olx.initialize('mazowieckie');
