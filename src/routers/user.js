@@ -1,20 +1,32 @@
-const express = require('express');
+const express = require("express");
 const router = new express.Router();
-const User = require('../models/user');
-const auth = require('../middleware/auth');
-const checkErrors = require('../utils/validators/checkErrors');
-const validateUsername = require('../utils/validators/validateUsername');
-const validateEmailUnique = require('../utils/validators/validateEmailUnique');
-const validateEmail = require('../utils/validators/validateEmail');
-const validatePassword = require('../utils/validators/validatePassword');
-const validateRepeatPassword = require('../utils/validators/validateRepeatPassword');
-const validateTermsAgree = require('../utils/validators/validateTermsAgree');
-const assignFirmToAgent = require('../utils/assignFirmToAgent');
+const User = require("../models/user");
+const auth = require("../middleware/auth");
+const checkErrors = require("../utils/validators/checkErrors");
+const validateUsername = require("../utils/validators/validateUsername");
+const validateEmailUnique = require("../utils/validators/validateEmailUnique");
+const validateEmail = require("../utils/validators/validateEmail");
+const validatePassword = require("../utils/validators/validatePassword");
+const validateRepeatPassword = require("../utils/validators/validateRepeatPassword");
+const validateTermsAgree = require("../utils/validators/validateTermsAgree");
+const assignFirmToAgent = require("../utils/assignFirmToAgent");
 
 ///////////////////////
 ///// CREATE USER /////
 ///////////////////////
-router.post('/api/users', async (req, res) => {
+router.get("/api/test", async (req, res) => {
+  try {
+    res.status(200).send("Working");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ error: "Coś poszło nie tak..." });
+  }
+});
+
+///////////////////////
+///// CREATE USER /////
+///////////////////////
+router.post("/api/users", async (req, res) => {
   const { username, phone, email, password, repeatPassword } = req.body;
 
   try {
@@ -23,10 +35,7 @@ router.post('/api/users', async (req, res) => {
     validationErrors.username = validateUsername(username);
     validationErrors.email = await validateEmailUnique(email);
     validationErrors.password = validatePassword(password);
-    validationErrors.repeatPassword = validateRepeatPassword(
-      password,
-      repeatPassword
-    );
+    validationErrors.repeatPassword = validateRepeatPassword(password, repeatPassword);
 
     // Ending validation
     if (!checkErrors(validationErrors)) {
@@ -39,9 +48,9 @@ router.post('/api/users', async (req, res) => {
 
     // If AccountOwner creates user assign parent value, and Agent role
     const { parentId, parentRole } = req.body;
-    if (parentRole === 'AccountOwner') {
+    if (parentRole === "AccountOwner") {
       user.parent = parentId.toString();
-      user.role = 'Agent';
+      user.role = "Agent";
     }
     // end.
 
@@ -52,14 +61,14 @@ router.post('/api/users', async (req, res) => {
     res.status(201).send({ user });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
+    res.status(500).send({ error: "Coś poszło nie tak..." });
   }
 });
 
 //////////////////////
 ///// LOGIN USER /////
 //////////////////////
-router.post('/api/users/login', async (req, res) => {
+router.post("/api/users/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -77,7 +86,7 @@ router.post('/api/users/login', async (req, res) => {
     let user = await User.findByCredentials(req.body.email, req.body.password);
 
     if (!user) {
-      validationErrors.error = 'E-mail i/lub hasło są nieprawidłowe.';
+      validationErrors.error = "E-mail i/lub hasło są nieprawidłowe.";
       return res.status(400).send({ validationErrors });
     }
 
@@ -85,7 +94,7 @@ router.post('/api/users/login', async (req, res) => {
     const token = await user.generateAuthToken();
 
     // Assign firm to user with Agent role
-    if (user.role === 'Agent') {
+    if (user.role === "Agent") {
       const parent = await User.findOne({ _id: user.parent });
 
       if (!parent) {
@@ -97,35 +106,34 @@ router.post('/api/users/login', async (req, res) => {
 
     // Check account expiration date
     if (user.accountExpires < Date.now()) {
-      validationErrors.error =
-        'Konto straciło ważność. Skontaktuj się z obsługą serwisu.';
+      validationErrors.error = "Konto straciło ważność. Skontaktuj się z obsługą serwisu.";
       return res.status(400).send({ validationErrors });
     }
 
     res.send({ user, token });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
+    res.status(500).send({ error: "Coś poszło nie tak..." });
   }
 });
 
 /////////////////////////////
 ///// AUTHENTICATE USER /////
 /////////////////////////////
-router.post('/api/users/isauth', auth, async (req, res) => {
+router.post("/api/users/isauth", auth, async (req, res) => {
   try {
     const user = req.user;
     res.send({ user });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
+    res.status(500).send({ error: "Coś poszło nie tak..." });
   }
 });
 
 ///////////////////////
 ///// LOGOUT USER /////
 ///////////////////////
-router.post('/api/users/logout', auth, async (req, res) => {
+router.post("/api/users/logout", auth, async (req, res) => {
   try {
     // Nie możemy wziąć usera z req.body ponieważ ma od przypisane dane firmowe, które zostałyby  do niego przypisane, dlatego wyszukujemy tego samego usera na nowo z bazy.
     const user = await User.findOne({ _id: req.user._id });
@@ -138,17 +146,17 @@ router.post('/api/users/logout', auth, async (req, res) => {
       return token.token !== req.token;
     });
     await user.save();
-    res.status(200).send({ msg: 'User logged out' });
+    res.status(200).send({ msg: "User logged out" });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
+    res.status(500).send({ error: "Coś poszło nie tak..." });
   }
 });
 
 ///////////////////////////
 ///// LOGOUT USER ALL /////
 ///////////////////////////
-router.post('/api/users/logoutAll', auth, async (req, res) => {
+router.post("/api/users/logoutAll", auth, async (req, res) => {
   try {
     // Komentarz jak wyżej.
     const user = await User.findOne({ _id: req.user._id });
@@ -159,35 +167,25 @@ router.post('/api/users/logoutAll', auth, async (req, res) => {
 
     user.tokens = [];
     await user.save();
-    res.send({ msg: 'User logged out' });
+    res.send({ msg: "User logged out" });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
+    res.status(500).send({ error: "Coś poszło nie tak..." });
   }
 });
 
 ////////////////////////
 ///// EDIT USER ME /////
 ////////////////////////
-router.patch('/api/users/me', auth, async (req, res) => {
+router.patch("/api/users/me", auth, async (req, res) => {
   const { username, phone, email, password, repeatPassword } = req.body;
   // Setting allowed updates
   const updates = Object.keys(req.body);
-  const allowedUpdates = [
-    'username',
-    'phone',
-    'email',
-    'password',
-    'repeatPassword',
-  ];
-  const isValidOperation = updates.every((update) =>
-    allowedUpdates.includes(update)
-  );
+  const allowedUpdates = ["username", "phone", "email", "password", "repeatPassword"];
+  const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
   if (!isValidOperation) {
-    return res
-      .status(400)
-      .send({ error: 'Nie można zaktualizować tych danych.' });
+    return res.status(400).send({ error: "Nie można zaktualizować tych danych." });
   }
 
   try {
@@ -207,10 +205,7 @@ router.patch('/api/users/me', auth, async (req, res) => {
     }
 
     if (repeatPassword !== undefined) {
-      validationErrors.repeatPassword = validateRepeatPassword(
-        password,
-        repeatPassword
-      );
+      validationErrors.repeatPassword = validateRepeatPassword(password, repeatPassword);
     }
 
     // Ending validation
@@ -235,7 +230,7 @@ router.patch('/api/users/me', auth, async (req, res) => {
     res.send({ user: modifiedUser });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
+    res.status(500).send({ error: "Coś poszło nie tak..." });
   }
 
   // NOTATKA
@@ -250,42 +245,24 @@ router.patch('/api/users/me', auth, async (req, res) => {
 //////////////////////
 ///// EDIT AGENT /////
 //////////////////////
-router.patch('/api/agent', auth, async (req, res) => {
-  const {
-    username,
-    phone,
-    email,
-    password,
-    repeatPassword,
-    parentId,
-    agentId,
-  } = req.body;
+router.patch("/api/agent", auth, async (req, res) => {
+  const { username, phone, email, password, repeatPassword, parentId, agentId } = req.body;
 
   // Setting allowed updates
   const updates = Object.keys(req.body);
 
   // Removing  agentId from updates list
 
-  let index = updates.indexOf('agentId');
+  let index = updates.indexOf("agentId");
   if (index > -1) {
     updates.splice(index, 1);
   }
 
-  const allowedUpdates = [
-    'username',
-    'phone',
-    'email',
-    'password',
-    'repeatPassword',
-  ];
-  const isValidOperation = updates.every((update) =>
-    allowedUpdates.includes(update)
-  );
+  const allowedUpdates = ["username", "phone", "email", "password", "repeatPassword"];
+  const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
   if (!isValidOperation) {
-    return res
-      .status(400)
-      .send({ error: 'Nie można zaktualizować tych danych.' });
+    return res.status(400).send({ error: "Nie można zaktualizować tych danych." });
   }
 
   try {
@@ -305,10 +282,7 @@ router.patch('/api/agent', auth, async (req, res) => {
     }
 
     if (repeatPassword !== undefined) {
-      validationErrors.repeatPassword = validateRepeatPassword(
-        password,
-        repeatPassword
-      );
+      validationErrors.repeatPassword = validateRepeatPassword(password, repeatPassword);
     }
 
     // Ending validation
@@ -320,7 +294,7 @@ router.patch('/api/agent', auth, async (req, res) => {
     const user = await User.findById({ _id: agentId });
 
     if (!user) {
-      throw new Error('No user was found!');
+      throw new Error("No user was found!");
     }
 
     updates.forEach((update) => (user[update] = req.body[update]));
@@ -337,14 +311,14 @@ router.patch('/api/agent', auth, async (req, res) => {
     res.send({ user: modifiedUser });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
+    res.status(500).send({ error: "Coś poszło nie tak..." });
   }
 });
 
 ////////////////////////
 ///// DELETE AGENT /////
 ////////////////////////
-router.delete('/api/agents', auth, async (req, res) => {
+router.delete("/api/agents", auth, async (req, res) => {
   const { agentId } = req.body;
 
   try {
@@ -358,14 +332,14 @@ router.delete('/api/agents', auth, async (req, res) => {
     res.send({ user });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
+    res.status(500).send({ error: "Coś poszło nie tak..." });
   }
 });
 
 ////////////////////////////
 ///// EDIT USER BADGES /////
 ////////////////////////////
-router.patch('/api/users/badge', auth, async (req, res) => {
+router.patch("/api/users/badge", auth, async (req, res) => {
   const { adId, badgeName } = req.body;
 
   try {
@@ -379,22 +353,17 @@ router.patch('/api/users/badge', auth, async (req, res) => {
     // Add badge
     if (!user.badges.includes(badgeName + adId)) {
       user.badges.push(badgeName + adId);
-      if (badgeName !== 'watched' && !user.badges.includes('watched' + adId)) {
-        user.badges.push('watched' + adId);
+      if (badgeName !== "watched" && !user.badges.includes("watched" + adId)) {
+        user.badges.push("watched" + adId);
       }
     }
     // Remove badge
     else {
       let updatedBadges;
-      if (
-        badgeName === 'watched' &&
-        user.badges.filter((str) => str.includes(adId)).length > 1
-      ) {
+      if (badgeName === "watched" && user.badges.filter((str) => str.includes(adId)).length > 1) {
         updatedBadges = user.badges;
       } else {
-        updatedBadges = user.badges.filter(
-          (value) => value !== badgeName + adId
-        );
+        updatedBadges = user.badges.filter((value) => value !== badgeName + adId);
       }
       user.badges = updatedBadges;
     }
@@ -411,18 +380,18 @@ router.patch('/api/users/badge', auth, async (req, res) => {
     res.send({ user: modifiedUser });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
+    res.status(500).send({ error: "Coś poszło nie tak..." });
   }
 });
 
 ////////////////////////////
 ///// READ AGENTS LIST /////
 ////////////////////////////
-router.get('/api/agents', auth, async (req, res) => {
+router.get("/api/agents", auth, async (req, res) => {
   try {
     // Setting main Id depending on user role
     let mainId;
-    if (req.user.role === 'Agent') {
+    if (req.user.role === "Agent") {
       mainId = req.user.parent;
     } else {
       mainId = req.user._id.toString();
@@ -435,21 +404,21 @@ router.get('/api/agents', auth, async (req, res) => {
     res.send({ users });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
+    res.status(500).send({ error: "Coś poszło nie tak..." });
   }
 });
 
 //////////////////////////////
 ///// ASSIGN AD TO AGENT /////
 //////////////////////////////
-router.post('/api/agents/assign', auth, async (req, res) => {
+router.post("/api/agents/assign", auth, async (req, res) => {
   try {
     const { agentId, adId } = req.body;
 
     const user = await User.findById({ _id: agentId });
 
     if (!user) {
-      throw new Error('User was not found.');
+      throw new Error("User was not found.");
     }
 
     if (!user.assignedAds) {
@@ -463,7 +432,7 @@ router.post('/api/agents/assign', auth, async (req, res) => {
     res.send({ user });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: 'Coś poszło nie tak...' });
+    res.status(500).send({ error: "Coś poszło nie tak..." });
   }
 });
 
